@@ -2,33 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Class X - Ch 8: Trigonometry</title>
+  <title>Class X - Ch 8: Trigonometry Applications</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: #f4f6f9; }
     header { background-color: #1a5276; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
     .logo { color: #ff69b4; font-size: 28px; font-weight: bold; text-decoration: none; }
-    nav a { color: white; text-decoration: none; margin-left: 20px; }
-    .container { max-width: 700px; margin: 40px auto; padding: 20px; }
-    .ratio-box { background: white; border: 1px solid #ccc; padding: 15px; border-radius: 6px; margin-top: 10px; }
+    nav a { color: white; text-decoration: none; margin-left: 20px; font-weight: bold; }
+    .container { max-width: 900px; margin: 30px auto; padding: 20px; }
+    .card-box { background: white; border: 2px solid #d6dbdf; border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+    h2 { color: #1a5276; margin-bottom: 10px; border-bottom: 2px solid #ebf5fb; padding-bottom: 8px; }
+    p { margin-bottom: 15px; color: #555; line-height: 1.6; }
+    #ggb-element { width: 100%; display: flex; justify-content: center; margin-top: 20px; }
   </style>
 </head>
 <body>
+
   <header>
-    <a href="../index.html" class="logo">M T</a>
-    <nav><a href="../index.html">? Home</a></nav>
+    <a href="../../index.html" class="logo">M T</a>
+    <nav>
+      <a href="../../index.html">Home</a>
+      <a href="../class-6/index.html">Resources</a>
+    </nav>
   </header>
+
   <div class="container">
-    <h1>Class X - Chapter 8: Introduction to Trigonometry</h1>
-    <p style="margin-top: 10px;">Trigonometry is the study of relationships between the sides and angles of a triangle[cite: 2].</p>
-    
-    <div class="ratio-box">
-      <p><strong>sine of ?A (sin A):</strong> Side opposite to angle A / Hypotenuse[cite: 2]</p>
-      <p><strong>cosine of ?A (cos A):</strong> Side adjacent to angle A / Hypotenuse[cite: 2]</p>
-      <p><strong>tangent of ?A (tan A):</strong> sin A / cos A[cite: 2]</p>
-      <p><strong>cotangent of ?A (cot A):</strong> 1 / tan A[cite: 2]</p>
-      <p><strong>secant of ?A (sec A):</strong> 1 / cos A[cite: 2]</p>
-      <p><strong>cosecant of ?A (cosec A):</strong> 1 / sin A[cite: 2]</p>
+    <h1 style="text-align: center; color: #1a5276; margin-bottom: 25px;">Class X - Chapter 8: Introduction to Trigonometry</h1>
+
+    <div class="card-box">
+      <h2>Heights and Distances Exploration</h2>
+      <p>Right triangles help us solve real-life geometry problems without measuring directly[cite: 2]:</p>
+      <ul>
+        <li><strong>Qutub Minar Height:</strong> Finding the height of Qutub Minar using the angle of elevation[cite: 2].</li>
+        <li><strong>River Width:</strong> Looking down from a balcony to a temple stair on the opposite bank[cite: 2].</li>
+        <li><strong>Hot Air Balloon Altitude:</strong> Calculating the height of a balloon moving from position A to position B[cite: 2].</li>
+      </ul>
+
+      <!-- Interactive GeoGebra Applet Container -->
+      <div id="ggb-element"></div>
     </div>
   </div>
+
+  <!-- GeoGebra Injection Script -->
+  <script src="https://www.geogebra.org/apps/deployggb.js"></script>
+  <script>
+    var params = {
+      "appName": "classic",
+      "width": 800,
+      "height": 500,
+      "showResetIcon": true,
+      "showToolBar": false,
+      "material_id": "YOUR_GEOGEBRA_ID" // OR use "filename": "applet.ggb" for local files
+    };
+    var applet = new GGBApplet(params, true);
+    window.addEventListener("load", function() {
+      applet.inject('ggb-element');
+    });
+  </script>
 </body>
 </html>

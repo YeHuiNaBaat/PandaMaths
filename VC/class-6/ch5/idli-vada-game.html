@@ -1,1 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Idli-Vada Speed Challenge</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: #f4f6f9; color: #333; }
+    header { background-color: #1a5276; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .logo { color: #ff69b4; font-size: 28px; font-weight: bold; text-decoration: none; }
+    nav a { color: white; text-decoration: none; margin-left: 20px; font-weight: bold; }
+    .container { max-width: 800px; margin: 30px auto; padding: 20px; }
+    .card-box { background: white; border: 2px solid #d6dbdf; border-radius: 8px; padding: 25px; text-align: center; }
+    h2 { color: #1a5276; margin-bottom: 15px; }
+    
+    .score-board { display: flex; justify-content: space-around; font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #1a5276; }
+    .number-display { font-size: 72px; font-weight: 900; color: #2471a3; background: #ebf5fb; padding: 20px; border-radius: 12px; margin: 15px 0; border: 3px dashed #2471a3; }
+    
+    .timer-container { width: 100%; background-color: #ddd; border-radius: 10px; height: 16px; margin-bottom: 20px; overflow: hidden; }
+    .timer-bar { height: 100%; width: 100%; background-color: #27ae60; transition: width 0.1s linear; }
 
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+    .game-btn { background: #2471a3; color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.1s; }
+    .game-btn:hover { background: #ff69b4; transform: scale(1.02); }
+    .game-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+    
+    .start-btn { background: #27ae60; color: white; border: none; padding: 12px 30px; font-size: 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+    .start-btn:hover { background: #1e8449; }
+    .feedback { margin-top: 15px; font-size: 18px; font-weight: bold; min-height: 25px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../../../index.html" class="logo">M T</a>
+    <nav>
+      <a href="../../../index.html">Home</a>
+      <a href="index.html">← Back to Ch 5</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card-box">
+      <h2>Idli-Vada Speed Challenge</h2>
+      <p style="margin-bottom: 15px; color: #555;">Identify multiples of 3 (Idli), 5 (Vada), or both (Idli-Vada) before time runs out!</p>
+
+      <div class="score-board">
+        <div>Total Score: <span id="score">0</span></div>
+        <div>Time Left: <span id="time-text">10.0</span>s</div>
+      </div>
+
+      <div class="timer-container">
+        <div id="timer-bar" class="timer-bar"></div>
+      </div>
+
+      <div id="num-display" class="number-display">?</div>
+
+      <button id="start-btn" onclick="startGame()" class="start-btn">Start Game</button>
+
+      <div class="btn-grid">
+        <button class="game-btn option-btn" onclick="checkAnswer('idli')" disabled>Idli (Multiple of 3)</button>
+        <button class="game-btn option-btn" onclick="checkAnswer('vada')" disabled>Vada (Multiple of 5)</button>
+        <button class="game-btn option-btn" onclick="checkAnswer('idli-vada')" disabled>Idli-Vada (Multiple of 15)</button>
+        <button class="game-btn option-btn" onclick="checkAnswer('number')" disabled>Just the Number</button>
+      </div>
+
+      <div id="feedback" class="feedback"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentNumber = 0, score = 0, timeLeft = 10, timerInterval = null, startTime = 0;
+
+    function startGame() {
+      score = 0;
+      document.getElementById('score').innerText = score;
+      document.getElementById('start-btn').style.display = 'none';
+      toggleButtons(true);
+      nextRound();
+    }
+
+    function nextRound() {
+      currentNumber = Math.floor(Math.random() * 90) + 1;
+      document.getElementById('num-display').innerText = currentNumber;
+      document.getElementById('feedback').innerText = '';
+
+      timeLeft = 10;
+      startTime = Date.now();
+      updateTimerUI();
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        let elapsedTime = (Date.now() - startTime) / 1000;
+        timeLeft = Math.max(0, 10 - elapsedTime);
+        updateTimerUI();
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          handleTimeout();
+        }
+      }, 100);
+    }
+
+    function updateTimerUI() {
+      document.getElementById('time-text').innerText = timeLeft.toFixed(1);
+      document.getElementById('timer-bar').style.width = ((timeLeft / 10) * 100) + '%';
+    }
+
+    function getCorrectAnswer(num) {
+      if (num % 3 === 0 && num % 5 === 0) return 'idli-vada';
+      if (num % 3 === 0) return 'idli';
+      if (num % 5 === 0) return 'vada';
+      return 'number';
+    }
+
+    function checkAnswer(userChoice) {
+      clearInterval(timerInterval);
+      let correctAnswer = getCorrectAnswer(currentNumber);
+
+      if (userChoice === correctAnswer) {
+        let pointsEarned = Math.max(1, Math.ceil(timeLeft));
+        score += pointsEarned;
+        document.getElementById('score').innerText = score;
+        document.getElementById('feedback').innerText = `Correct! +${pointsEarned} Points!`;
+        document.getElementById('feedback').style.color = '#27ae60';
+      } else {
+        document.getElementById('feedback').innerText = `Wrong! Correct was: '${correctAnswer.toUpperCase()}'`;
+        document.getElementById('feedback').style.color = '#c0392b';
+      }
+
+      setTimeout(nextRound, 1500);
+    }
+
+    function handleTimeout() {
+      let correctAnswer = getCorrectAnswer(currentNumber);
+      document.getElementById('feedback').innerText = `Time's Up! Correct was: '${correctAnswer.toUpperCase()}'`;
+      document.getElementById('feedback').style.color = '#e67e22';
+      setTimeout(nextRound, 1500);
+    }
+
+    function toggleButtons(enable) {
+      let btns = document.getElementsByClassName('option-btn');
+      for (let btn of btns) btn.disabled = !enable;
+    }
+  </script>
+</body>
+</html>

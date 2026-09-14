@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gabriel's Problem - Prime Time</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: #f4f6f9; color: #333; }
+    header { background-color: #1a5276; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .logo { color: #ff69b4; font-size: 28px; font-weight: bold; text-decoration: none; }
+    nav a { color: white; text-decoration: none; margin-left: 20px; font-weight: bold; }
+    .container { max-width: 800px; margin: 30px auto; padding: 20px; text-align: center; }
+    .card-box { background: white; border: 2px solid #d6dbdf; border-radius: 8px; padding: 25px; }
+    h2 { color: #1a5276; margin-bottom: 10px; }
+    p { color: #555; margin-bottom: 20px; }
+    
+    /* Grid Styling */
+    .grid-container { display: grid; grid-template-columns: repeat(4, 70px); gap: 10px; justify-content: center; margin: 20px 0; }
+    .grid-cell { width: 70px; height: 70px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+    .input-cell { border: 2px solid #2471a3; background: #ebf5fb; color: #1a5276; text-align: center; font-size: 24px; font-weight: bold; }
+    .product-cell { background: #1a5276; color: white; }
+    .empty-corner { visibility: hidden; }
+
+    /* Controls & Feedback */
+    .action-btn { background: #27ae60; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin: 5px; }
+    .action-btn:hover { background: #1e8449; }
+    .reset-btn { background: #e74c3c; }
+    .reset-btn:hover { background: #c0392b; }
+    #feedback { margin-top: 15px; font-size: 18px; font-weight: bold; min-height: 25px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../../../index.html" class="logo">M T</a>
+    <nav>
+      <a href="../../../index.html">Home</a>
+      <a href="index.html">← Back to Ch 5</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card-box">
+      <h2>Gabriel's Factor Puzzle</h2>
+      <p>Fill in digits <strong>1 through 9</strong> (use each number once) so that the row and column products match the dark blue boxes!</p>
+
+      <div class="grid-container">
+        <!-- Row 1 -->
+        <input type="number" class="grid-cell input-cell" id="c00" min="1" max="9">
+        <input type="number" class="grid-cell input-cell" id="c01" min="1" max="9">
+        <input type="number" class="grid-cell input-cell" id="c02" min="1" max="9">
+        <div class="grid-cell product-cell">84</div>
+
+        <!-- Row 2 -->
+        <input type="number" class="grid-cell input-cell" id="c10" min="1" max="9">
+        <input type="number" class="grid-cell input-cell" id="c11" min="1" max="9">
+        <input type="number" class="grid-cell input-cell" id="c12" min="1" max="9">
+        <div class="grid-cell product-cell">144</div>
+
+        <!-- Row 3 -->
+        <input type="number" class="grid-cell input-cell" id="c20" min="1" max="9">
+        <input type="number" class="grid-cell input-cell" id="c21" min="1" max="9">
+        <input type="number" class="grid-cell input-cell" id="c22" min="1" max="9">
+        <div class="grid-cell product-cell">30</div>
+
+        <!-- Column Products -->
+        <div class="grid-cell product-cell">96</div>
+        <div class="grid-cell product-cell">45</div>
+        <div class="grid-cell product-cell">84</div>
+        <div class="grid-cell empty-corner"></div>
+      </div>
+
+      <button onclick="checkSolution()" class="action-btn">Check Solution</button>
+      <button onclick="resetGrid()" class="action-btn reset-btn">Reset</button>
+
+      <div id="feedback"></div>
+    </div>
+  </div>
+
+  <script>
+    // Targeted target matrix values
+    const targetRows = [84, 144, 30];
+    const targetCols = [96, 45, 84];
+
+    function checkSolution() {
+      let inputs = [];
+      let usedNumbers = new Set();
+      
+      for (let r = 0; r < 3; r++) {
+        inputs[r] = [];
+        for (let c = 0; c < 3; c++) {
+          let val = parseInt(document.getElementById(`c${r}${c}`).value);
+          if (isNaN(val) || val < 1 || val > 9) {
+            showFeedback("Please fill all cells with digits 1 to 9.", "#e67e22");
+            return;
+          }
+          if (usedNumbers.has(val)) {
+            showFeedback(`Digit ${val} is used more than once! Use digits 1–9 exactly once.`, "#c0392b");
+            return;
+          }
+          usedNumbers.add(val);
+          inputs[r][c] = val;
+        }
+      }
+
+      // Check row products
+      for (let r = 0; r < 3; r++) {
+        let p = inputs[r][0] * inputs[r][1] * inputs[r][2];
+        if (p !== targetRows[r]) {
+          showFeedback(`Row ${r + 1} product is ${p}, but needs to be ${targetRows[r]}.`, "#c0392b");
+          return;
+        }
+      }
+
+      // Check column products
+      for (let c = 0; c < 3; c++) {
+        let p = inputs[0][c] * inputs[1][c] * inputs[2][c];
+        if (p !== targetCols[c]) {
+          showFeedback(`Column ${c + 1} product is ${p}, but needs to be ${targetCols[c]}.`, "#c0392b");
+          return;
+        }
+      }
+
+      showFeedback("Correct! You solved Gabriel's Puzzle using prime factors!", "#27ae60");
+    }
+
+    function showFeedback(msg, color) {
+      const fb = document.getElementById('feedback');
+      fb.innerText = msg;
+      fb.style.color = color;
+    }
+
+    function resetGrid() {
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          document.getElementById(`c${r}${c}`).value = "";
+        }
+      }
+      showFeedback("", "#333");
+    }
+  </script>
+</body>
+</html>

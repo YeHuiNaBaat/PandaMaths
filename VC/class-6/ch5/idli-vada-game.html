@@ -13,9 +13,11 @@
     .card-box { background: white; border: 2px solid #2471a3; border-radius: 8px; padding: 30px; }
     h2 { color: #1a5276; margin-bottom: 15px; }
     .stats { display: flex; justify-content: space-around; font-size: 18px; font-weight: bold; color: #1a5276; margin-bottom: 20px; }
-    #number-display { font-size: 64px; font-weight: bold; color: #2471a3; margin: 20px 0; }
-    .btn-container { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
-    .game-btn { background: #1a5276; color: white; border: none; padding: 15px 30px; font-size: 20px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .timer-bar-bg { width: 100%; background: #e0e0e0; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
+    #timer-bar { width: 100%; height: 100%; background: #27ae60; transition: width 0.1s linear, background-color 0.3s; }
+    #number-display { font-size: 64px; font-weight: bold; color: #2471a3; margin: 10px 0 20px 0; }
+    .btn-container { display: flex; justify-content: center; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
+    .game-btn { background: #1a5276; color: white; border: none; padding: 15px 25px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
     .game-btn:hover:not(:disabled) { background: #ff69b4; transform: translateY(-2px); }
     .game-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     #feedback { margin-top: 20px; font-size: 20px; font-weight: bold; min-height: 30px; }
@@ -36,11 +38,15 @@
   <div class="container">
     <div class="card-box">
       <h2>Idli-Vada Speed Challenge</h2>
-      <p style="color: #555; margin-bottom: 15px;">Rule: Select <strong>Idli</strong> for Multiples of 3, <strong>Vada</strong> for Multiples of 5, or <strong>Idli-Vada</strong> for Multiples of 15!</p>
+      <p style="color: #555; margin-bottom: 15px;">Answer quickly for maximum points!</p>
 
       <div class="stats">
         <div>Round: <span id="round-count">1</span> / 10</div>
         <div>Score: <span id="score-display">0</span></div>
+      </div>
+
+      <div class="timer-bar-bg">
+        <div id="timer-bar"></div>
       </div>
 
       <div id="number-display">--</div>
@@ -61,13 +67,49 @@
     let score = 0;
     let round = 1;
     const maxRounds = 10;
+    
+    // Timer Variables
+    let timerInterval = null;
+    let timeLeft = 5.0; // 5 seconds per round
+    const maxTime = 5.0;
 
     function getRandomNumber() {
-      // Generate numbers that are multiples of 3, 5, or 15
       const factors = [3, 5, 15];
       const baseFactor = factors[Math.floor(Math.random() * factors.length)];
       const multiplier = Math.floor(Math.random() * 10) + 1;
       return baseFactor * multiplier;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timeLeft = maxTime;
+      updateTimerUI();
+
+      timerInterval = setInterval(() => {
+        timeLeft -= 0.1;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          updateTimerUI();
+          clearInterval(timerInterval);
+          handleTimeOut();
+        } else {
+          updateTimerUI();
+        }
+      }, 100);
+    }
+
+    function updateTimerUI() {
+      const percentage = (timeLeft / maxTime) * 100;
+      const bar = document.getElementById('timer-bar');
+      bar.style.width = percentage + "%";
+
+      if (percentage > 50) {
+        bar.style.backgroundColor = "#27ae60";
+      } else if (percentage > 25) {
+        bar.style.backgroundColor = "#f39c12";
+      } else {
+        bar.style.backgroundColor = "#e74c3c";
+      }
     }
 
     function nextRound() {
@@ -79,26 +121,26 @@
       document.getElementById('round-count').innerText = round;
       currentNumber = getRandomNumber();
       document.getElementById('number-display').innerText = currentNumber;
+      startTimer();
     }
 
     function makeChoice(choice) {
-      if (round > maxRounds) return;
+      if (round > maxRounds || timeLeft <= 0) return;
 
-      let correct = false;
+      clearInterval(timerInterval);
+
       let expected = "";
-
-      if (currentNumber % 15 === 0) {
-        expected = 'idli-vada';
-      } else if (currentNumber % 3 === 0) {
-        expected = 'idli';
-      } else if (currentNumber % 5 === 0) {
-        expected = 'vada';
-      }
+      if (currentNumber % 15 === 0) expected = 'idli-vada';
+      else if (currentNumber % 3 === 0) expected = 'idli';
+      else if (currentNumber % 5 === 0) expected = 'vada';
 
       const fb = document.getElementById('feedback');
+
       if (choice === expected) {
-        score += 10;
-        fb.innerText = "Correct! +10 Points";
+        // Speed score calculation (Max 100 pts per round)
+        const roundPoints = Math.round((timeLeft / maxTime) * 80) + 20;
+        score += roundPoints;
+        fb.innerText = `⚡ Fast! +${roundPoints} Points`;
         fb.style.color = "#27ae60";
       } else {
         fb.innerText = `Wrong! ${currentNumber} needed ${expected.toUpperCase()}`;
@@ -115,20 +157,34 @@
         } else {
           endGame();
         }
-      }, 1000);
+      }, 1200);
+    }
+
+    function handleTimeOut() {
+      const fb = document.getElementById('feedback');
+      fb.innerText = "⏰ Time's up!";
+      fb.style.color = "#e74c3c";
+      round++;
+
+      setTimeout(() => {
+        if (round <= maxRounds) {
+          fb.innerText = "";
+          nextRound();
+        } else {
+          endGame();
+        }
+      }, 1200);
     }
 
     function endGame() {
+      clearInterval(timerInterval);
       document.getElementById('number-display').innerText = "Game Over!";
       const fb = document.getElementById('feedback');
-      fb.innerText = `Final Score: ${score} / ${maxRounds * 10}`;
+      fb.innerText = `Final Score: ${score} Points!`;
       fb.style.color = "#1a5276";
 
-      // Disable choice buttons
       const buttons = document.querySelectorAll('.game-btn');
       buttons.forEach(btn => btn.disabled = true);
-
-      // Show Play Again button
       document.getElementById('restart-btn').style.display = "inline-block";
     }
 
@@ -145,7 +201,6 @@
       nextRound();
     }
 
-    // Start game on page load
     startGame();
   </script>
 </body>

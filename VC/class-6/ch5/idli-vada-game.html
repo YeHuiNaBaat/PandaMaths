@@ -9,24 +9,18 @@
     header { background-color: #1a5276; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
     .logo { color: #ff69b4; font-size: 28px; font-weight: bold; text-decoration: none; }
     nav a { color: white; text-decoration: none; margin-left: 20px; font-weight: bold; }
-    .container { max-width: 800px; margin: 30px auto; padding: 20px; }
-    .card-box { background: white; border: 2px solid #d6dbdf; border-radius: 8px; padding: 25px; text-align: center; }
+    .container { max-width: 600px; margin: 40px auto; padding: 20px; text-align: center; }
+    .card-box { background: white; border: 2px solid #2471a3; border-radius: 8px; padding: 30px; }
     h2 { color: #1a5276; margin-bottom: 15px; }
-    
-    .score-board { display: flex; justify-content: space-around; font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #1a5276; }
-    .number-display { font-size: 72px; font-weight: 900; color: #2471a3; background: #ebf5fb; padding: 20px; border-radius: 12px; margin: 15px 0; border: 3px dashed #2471a3; }
-    
-    .timer-container { width: 100%; background-color: #ddd; border-radius: 10px; height: 16px; margin-bottom: 20px; overflow: hidden; }
-    .timer-bar { height: 100%; width: 100%; background-color: #27ae60; transition: width 0.1s linear; }
-
-    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
-    .game-btn { background: #2471a3; color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.1s; }
-    .game-btn:hover { background: #ff69b4; transform: scale(1.02); }
-    .game-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-    
-    .start-btn { background: #27ae60; color: white; border: none; padding: 12px 30px; font-size: 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
-    .start-btn:hover { background: #1e8449; }
-    .feedback { margin-top: 15px; font-size: 18px; font-weight: bold; min-height: 25px; }
+    .stats { display: flex; justify-content: space-around; font-size: 18px; font-weight: bold; color: #1a5276; margin-bottom: 20px; }
+    #number-display { font-size: 64px; font-weight: bold; color: #2471a3; margin: 20px 0; }
+    .btn-container { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
+    .game-btn { background: #1a5276; color: white; border: none; padding: 15px 30px; font-size: 20px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .game-btn:hover:not(:disabled) { background: #ff69b4; transform: translateY(-2px); }
+    .game-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #feedback { margin-top: 20px; font-size: 20px; font-weight: bold; min-height: 30px; }
+    #restart-btn { background: #27ae60; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 20px; display: none; }
+    #restart-btn:hover { background: #1e8449; }
   </style>
 </head>
 <body>
@@ -42,106 +36,117 @@
   <div class="container">
     <div class="card-box">
       <h2>Idli-Vada Speed Challenge</h2>
-      <p style="margin-bottom: 15px; color: #555;">Identify multiples of 3 (Idli), 5 (Vada), or both (Idli-Vada) before time runs out!</p>
+      <p style="color: #555; margin-bottom: 15px;">Rule: Select <strong>Idli</strong> for Multiples of 3, <strong>Vada</strong> for Multiples of 5, or <strong>Idli-Vada</strong> for Multiples of 15!</p>
 
-      <div class="score-board">
-        <div>Total Score: <span id="score">0</span></div>
-        <div>Time Left: <span id="time-text">10.0</span>s</div>
+      <div class="stats">
+        <div>Round: <span id="round-count">1</span> / 10</div>
+        <div>Score: <span id="score-display">0</span></div>
       </div>
 
-      <div class="timer-container">
-        <div id="timer-bar" class="timer-bar"></div>
+      <div id="number-display">--</div>
+
+      <div class="btn-container">
+        <button class="game-btn" onclick="makeChoice('idli')">Idli (÷3)</button>
+        <button class="game-btn" onclick="makeChoice('vada')">Vada (÷5)</button>
+        <button class="game-btn" onclick="makeChoice('idli-vada')">Idli-Vada (÷15)</button>
       </div>
 
-      <div id="num-display" class="number-display">?</div>
-
-      <button id="start-btn" onclick="startGame()" class="start-btn">Start Game</button>
-
-      <div class="btn-grid">
-        <button class="game-btn option-btn" onclick="checkAnswer('idli')" disabled>Idli (Multiple of 3)</button>
-        <button class="game-btn option-btn" onclick="checkAnswer('vada')" disabled>Vada (Multiple of 5)</button>
-        <button class="game-btn option-btn" onclick="checkAnswer('idli-vada')" disabled>Idli-Vada (Multiple of 15)</button>
-        <button class="game-btn option-btn" onclick="checkAnswer('number')" disabled>Just the Number</button>
-      </div>
-
-      <div id="feedback" class="feedback"></div>
+      <div id="feedback"></div>
+      <button id="restart-btn" onclick="startGame()">Play Again</button>
     </div>
   </div>
 
   <script>
-    let currentNumber = 0, score = 0, timeLeft = 10, timerInterval = null, startTime = 0;
+    let currentNumber = 0;
+    let score = 0;
+    let round = 1;
+    const maxRounds = 10;
 
-    function startGame() {
-      score = 0;
-      document.getElementById('score').innerText = score;
-      document.getElementById('start-btn').style.display = 'none';
-      toggleButtons(true);
-      nextRound();
+    function getRandomNumber() {
+      // Generate numbers that are multiples of 3, 5, or 15
+      const factors = [3, 5, 15];
+      const baseFactor = factors[Math.floor(Math.random() * factors.length)];
+      const multiplier = Math.floor(Math.random() * 10) + 1;
+      return baseFactor * multiplier;
     }
 
     function nextRound() {
-      currentNumber = Math.floor(Math.random() * 90) + 1;
-      document.getElementById('num-display').innerText = currentNumber;
-      document.getElementById('feedback').innerText = '';
-
-      timeLeft = 10;
-      startTime = Date.now();
-      updateTimerUI();
-
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        let elapsedTime = (Date.now() - startTime) / 1000;
-        timeLeft = Math.max(0, 10 - elapsedTime);
-        updateTimerUI();
-
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          handleTimeout();
-        }
-      }, 100);
-    }
-
-    function updateTimerUI() {
-      document.getElementById('time-text').innerText = timeLeft.toFixed(1);
-      document.getElementById('timer-bar').style.width = ((timeLeft / 10) * 100) + '%';
-    }
-
-    function getCorrectAnswer(num) {
-      if (num % 3 === 0 && num % 5 === 0) return 'idli-vada';
-      if (num % 3 === 0) return 'idli';
-      if (num % 5 === 0) return 'vada';
-      return 'number';
-    }
-
-    function checkAnswer(userChoice) {
-      clearInterval(timerInterval);
-      let correctAnswer = getCorrectAnswer(currentNumber);
-
-      if (userChoice === correctAnswer) {
-        let pointsEarned = Math.max(1, Math.ceil(timeLeft));
-        score += pointsEarned;
-        document.getElementById('score').innerText = score;
-        document.getElementById('feedback').innerText = `Correct! +${pointsEarned} Points!`;
-        document.getElementById('feedback').style.color = '#27ae60';
-      } else {
-        document.getElementById('feedback').innerText = `Wrong! Correct was: '${correctAnswer.toUpperCase()}'`;
-        document.getElementById('feedback').style.color = '#c0392b';
+      if (round > maxRounds) {
+        endGame();
+        return;
       }
 
-      setTimeout(nextRound, 1500);
+      document.getElementById('round-count').innerText = round;
+      currentNumber = getRandomNumber();
+      document.getElementById('number-display').innerText = currentNumber;
     }
 
-    function handleTimeout() {
-      let correctAnswer = getCorrectAnswer(currentNumber);
-      document.getElementById('feedback').innerText = `Time's Up! Correct was: '${correctAnswer.toUpperCase()}'`;
-      document.getElementById('feedback').style.color = '#e67e22';
-      setTimeout(nextRound, 1500);
+    function makeChoice(choice) {
+      if (round > maxRounds) return;
+
+      let correct = false;
+      let expected = "";
+
+      if (currentNumber % 15 === 0) {
+        expected = 'idli-vada';
+      } else if (currentNumber % 3 === 0) {
+        expected = 'idli';
+      } else if (currentNumber % 5 === 0) {
+        expected = 'vada';
+      }
+
+      const fb = document.getElementById('feedback');
+      if (choice === expected) {
+        score += 10;
+        fb.innerText = "Correct! +10 Points";
+        fb.style.color = "#27ae60";
+      } else {
+        fb.innerText = `Wrong! ${currentNumber} needed ${expected.toUpperCase()}`;
+        fb.style.color = "#c0392b";
+      }
+
+      document.getElementById('score-display').innerText = score;
+      round++;
+
+      setTimeout(() => {
+        if (round <= maxRounds) {
+          fb.innerText = "";
+          nextRound();
+        } else {
+          endGame();
+        }
+      }, 1000);
     }
 
-    function toggleButtons(enable) {
-      let btns = document.getElementsByClassName('option-btn');
-      for (let btn of btns) btn.disabled = !enable;
+    function endGame() {
+      document.getElementById('number-display').innerText = "Game Over!";
+      const fb = document.getElementById('feedback');
+      fb.innerText = `Final Score: ${score} / ${maxRounds * 10}`;
+      fb.style.color = "#1a5276";
+
+      // Disable choice buttons
+      const buttons = document.querySelectorAll('.game-btn');
+      buttons.forEach(btn => btn.disabled = true);
+
+      // Show Play Again button
+      document.getElementById('restart-btn').style.display = "inline-block";
     }
+
+    function startGame() {
+      score = 0;
+      round = 1;
+      document.getElementById('score-display').innerText = score;
+      document.getElementById('feedback').innerText = "";
+      document.getElementById('restart-btn').style.display = "none";
+
+      const buttons = document.querySelectorAll('.game-btn');
+      buttons.forEach(btn => btn.disabled = false);
+
+      nextRound();
+    }
+
+    // Start game on page load
+    startGame();
   </script>
 </body>
 </html>
